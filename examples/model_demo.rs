@@ -4,7 +4,7 @@
 
 use chrono::Utc;
 use serde_json::json;
-use streamforge::{EventType, NormalizedEvent, RawEvent};
+use streamforge::{NormalizedEvent, RawEvent};
 use uuid::Uuid;
 
 fn main() {
@@ -52,7 +52,7 @@ fn demo_valid_click_event() {
     println!("\nNormalized Event:");
     println!("  Event ID: {}", normalized.event_id);
     println!("  Type: {}", normalized.event_type);
-    println!("  User ID: {}", normalized.user_id);
+    println!("  User ID: {:?}", normalized.user_id);
     println!("  Path: {:?}", normalized.path);
     println!("  Referrer: {:?}", normalized.referrer);
     println!("  Processed At: {}", normalized.processed_at);
