@@ -79,7 +79,7 @@ impl Default for HealthState {
 /// This endpoint should be lightweight and not check external dependencies.
 ///
 /// # Example
-/// ```
+/// ```text
 /// GET /healthz
 /// ```
 pub async fn health_check() -> Response {
@@ -98,7 +98,7 @@ pub async fn health_check() -> Response {
 /// all critical dependencies are available.
 ///
 /// # Example
-/// ```
+/// ```text
 /// GET /readyz
 /// ```
 pub async fn ready_check(State(state): State<Arc<HealthState>>) -> Response {
@@ -120,7 +120,7 @@ pub async fn ready_check(State(state): State<Arc<HealthState>>) -> Response {
 /// Returns build metadata including version, commit hash, and build time.
 ///
 /// # Example
-/// ```
+/// ```text
 /// GET /build
 /// ```
 pub async fn build_info() -> Response {

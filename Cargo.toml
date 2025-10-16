@@ -3,6 +3,14 @@ name = "streamforge"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "streamforge"
+path = "src/lib.rs"
+
+[[bin]]
+name = "streamforge"
+path = "src/main.rs"
+
 [dependencies]
 anyhow = "1.0.100"
 axum = "0.8.6"

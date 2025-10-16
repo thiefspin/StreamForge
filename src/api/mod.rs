@@ -6,7 +6,7 @@
 pub mod health;
 pub mod server;
 
-pub use health::{build_info, health_check, ready_check};
+pub use health::{build_info, health_check, ready_check, HealthState};
 pub use server::{create_router, create_server, shutdown_signal};
 
 /// API version constant
