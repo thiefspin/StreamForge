@@ -249,8 +249,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 For issues and questions:
 - Create a GitHub issue
-- Check the [documentation](./spec/)
-- Review the [development guide](./spec/development-phases.md)
 
 ---
 
