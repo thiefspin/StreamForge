@@ -7,6 +7,7 @@ mod api;
 mod config;
 mod error;
 mod logging;
+mod models;
 
 use std::sync::Arc;
 
