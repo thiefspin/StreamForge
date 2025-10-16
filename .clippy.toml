@@ -1,0 +1,102 @@
+# Clippy configuration for StreamForge
+
+# Maximum cognitive complexity
+cognitive-complexity-threshold = 30
+
+# Maximum number of lines in a single function
+too-many-lines-threshold = 100
+
+# Maximum number of arguments to a function
+too-many-arguments-threshold = 7
+
+# Type complexity threshold
+type-complexity-threshold = 250
+
+# Disallowed names
+disallowed-names = ["foo", "bar", "baz", "quux"]
+
+# Allow certain common patterns that are too strict
+avoid-breaking-exported-api = false
+
+# Allow unwrap in tests
+allow-unwrap-in-tests = true
+
+# Allow expect in tests
+allow-expect-in-tests = true
+
+# Allow dbg! in tests
+allow-dbg-in-tests = true
+
+# Allow print in tests
+allow-print-in-tests = true
+
+# Allow panic in tests
+allow-panic-in-tests = true
+
+# MSRV - Minimum Supported Rust Version
+msrv = "1.75.0"
+
+# Maximum trait bounds
+max-trait-bounds = 5
+
+# Maximum struct bools
+max-struct-bools = 5
+
+# Maximum fn params bools
+max-fn-params-bools = 3
+
+# Array size threshold for stack vs heap
+array-size-threshold = 512000
+
+# Large error threshold
+large-error-threshold = 256
+
+# Enum variant size threshold
+enum-variant-size-threshold = 200
+
+# Future size threshold
+future-size-threshold = 16384
+
+# Stack size threshold
+stack-size-threshold = 512000
+
+# Trivial copy size limit
+trivial-copy-size-limit = 16
+
+# Pass by value size limit
+pass-by-value-size-limit = 256
+
+# Too large for stack
+too-large-for-stack = 512000
+
+# Unreadable literal lint fractions
+unreadable-literal-lint-fractions = true
+
+# Upper case acronyms aggressive
+upper-case-acronyms-aggressive = false
+
+# Standard macro braces
+standard-macro-braces = [
+    { name = "println", brace = "(" },
+    { name = "format", brace = "(" },
+    { name = "vec", brace = "[" },
+]
+
+# Doc valid idents
+doc-valid-idents = [
+    "PostgreSQL",
+    "Kafka",
+    "StreamForge",
+    "Parquet",
+    "UUID",
+    "JSON",
+    "URL",
+    "API",
+    "HTTP",
+    "SQL",
+    "DLQ",
+    "OLAP",
+    "OLTP",
+    "gRPC",
+    "GitHub",
+]

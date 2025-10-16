@@ -1,0 +1,27 @@
+# Rustfmt configuration for StreamForge
+
+# Maximum width of each line
+max_width = 100
+
+# Use spaces instead of tabs
+hard_tabs = false
+tab_spaces = 4
+
+# Reorder imports and modules
+reorder_imports = true
+reorder_modules = true
+
+# Use field init shorthand
+use_field_init_shorthand = true
+
+# Use try shorthand (? operator)
+use_try_shorthand = true
+
+# Edition
+edition = "2021"
+
+# Match block trailing comma
+match_block_trailing_comma = true
+
+# Chain width
+chain_width = 80

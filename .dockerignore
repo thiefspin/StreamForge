@@ -1,0 +1,76 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+LICENSE
+docs/
+spec/
+
+# Development files
+.env
+.env.local
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# Rust build artifacts
+target/
+Cargo.lock
+**/*.rs.bk
+*.pdb
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+coverage/
+*.profraw
+*.profdata
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Docker
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# Parquet data (for local development)
+data/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS files
+Thumbs.db
+desktop.ini
+
+# Development tools
+Makefile
+rustfmt.toml
+.clippy.toml
+.cargo/
+
+# Benchmarks
+benches/
+perf.data
+perf.data.old
+flamegraph.svg
+
+# Examples
+examples/
+
+# Scripts
+scripts/
