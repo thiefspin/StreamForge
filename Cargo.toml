@@ -29,6 +29,13 @@ uuid = { version = "1.18.1", features = ["v4", "serde"] }
 
 validator = { version = "0.18.1", features = ["derive"] }
 regex = "1.10.6"
+sqlx = { version = "0.7.4", features = ["runtime-tokio-rustls", "postgres", "uuid", "chrono", "migrate"] }
+async-trait = "0.1.83"
+backoff = { version = "0.4.0", features = ["tokio"] }
+futures = "0.3.31"
+log = "0.4.28"
 
 [dev-dependencies]
 tokio-test = "0.4.4"
+testcontainers = "0.23.1"
+testcontainers-modules = { version = "0.11", features = ["postgres"] }
