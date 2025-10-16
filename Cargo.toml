@@ -34,6 +34,8 @@ async-trait = "0.1.83"
 backoff = { version = "0.4.0", features = ["tokio"] }
 futures = "0.3.31"
 log = "0.4.28"
+rdkafka = { version = "0.38.0", features = ["cmake-build"] }
+tokio-stream = "0.1.17"
 
 [dev-dependencies]
 tokio-test = "0.4.4"

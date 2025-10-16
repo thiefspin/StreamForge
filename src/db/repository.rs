@@ -4,11 +4,9 @@
 //! for database operations with proper error handling and retry logic.
 
 use async_trait::async_trait;
-use sqlx::postgres::PgQueryResult;
+
 use std::fmt::Debug;
 use thiserror::Error;
-
-use crate::error::Error as AppError;
 
 /// Result type for repository operations
 pub type RepositoryResult<T> = Result<T, RepositoryError>;
@@ -101,12 +99,12 @@ impl RepositoryError {
 }
 
 /// Convert repository errors to application errors
-impl From<RepositoryError> for AppError {
+impl From<RepositoryError> for crate::error::Error {
     fn from(err: RepositoryError) -> Self {
         match err {
-            RepositoryError::NotFound(msg) => AppError::NotFound(msg),
-            RepositoryError::Timeout(msg) => AppError::Timeout(msg),
-            _ => AppError::database(err.to_string()),
+            RepositoryError::NotFound(msg) => crate::error::Error::NotFound(msg),
+            RepositoryError::Timeout(msg) => crate::error::Error::Timeout(msg),
+            _ => crate::error::Error::database(err.to_string()),
         }
     }
 }
@@ -140,7 +138,7 @@ pub trait Repository: Send + Sync {
 #[async_trait]
 pub trait UpsertRepository: Repository {
     /// Upsert an entity (insert or update)
-    async fn upsert(&self, entity: &Self::Entity) -> RepositoryResult<PgQueryResult>;
+    async fn upsert(&self, entity: &Self::Entity) -> RepositoryResult<Self::Entity>;
 }
 
 /// Repository with batch operations

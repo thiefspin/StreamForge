@@ -12,6 +12,9 @@ pub use event_repo::{EventRepository, PgEventRepository};
 pub use pool::{create_pool, DbPool};
 pub use repository::{Repository, RepositoryError, RepositoryResult};
 
+#[cfg(test)]
+pub use event_repo::MockEventRepository;
+
 use sqlx::migrate::Migrator;
 
 /// Database migrator for running schema migrations

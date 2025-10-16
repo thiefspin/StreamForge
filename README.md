@@ -45,7 +45,7 @@ Kafka → StreamForge → PostgreSQL
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/streamforge.git
+git clone https://github.com/thiefspin/streamforge.git
 cd streamforge
 ```
 

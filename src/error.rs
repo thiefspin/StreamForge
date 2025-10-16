@@ -200,6 +200,13 @@ impl From<envconfig::Error> for Error {
     }
 }
 
+/// Convert from KafkaIntegrationError to our Error type
+impl From<crate::kafka::KafkaIntegrationError> for Error {
+    fn from(err: crate::kafka::KafkaIntegrationError) -> Self {
+        Error::Kafka(err.to_string())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

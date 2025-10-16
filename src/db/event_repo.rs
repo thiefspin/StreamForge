@@ -6,7 +6,7 @@
 use async_trait::async_trait;
 use backoff::{future::retry, ExponentialBackoff};
 use chrono::{DateTime, Utc};
-use sqlx::{postgres::PgQueryResult, Row};
+use sqlx::Row;
 use std::time::Duration;
 use uuid::Uuid;
 
@@ -56,6 +56,12 @@ pub trait EventRepository:
 
     /// Get total revenue (sum of amounts for PURCHASE events)
     async fn get_total_revenue(&self) -> RepositoryResult<i64>;
+
+    /// Upsert an event (convenience method)
+    async fn upsert_event(&self, event: &NormalizedEvent) -> RepositoryResult<NormalizedEvent>;
+
+    /// Get an event by ID (convenience method)
+    async fn get_event(&self, event_id: &Uuid) -> RepositoryResult<Option<NormalizedEvent>>;
 }
 
 /// PostgreSQL implementation of EventRepository
@@ -223,7 +229,7 @@ impl Repository for PgEventRepository {
 
 #[async_trait]
 impl UpsertRepository for PgEventRepository {
-    async fn upsert(&self, entity: &NormalizedEvent) -> RepositoryResult<PgQueryResult> {
+    async fn upsert(&self, entity: &NormalizedEvent) -> RepositoryResult<NormalizedEvent> {
         let pool = self.pool.clone();
         let entity = entity.clone();
 
@@ -231,7 +237,7 @@ impl UpsertRepository for PgEventRepository {
             let pool = pool.clone();
             let entity = entity.clone();
             Box::pin(async move {
-                let result = sqlx::query(
+                let _result = sqlx::query(
                     r#"
                     INSERT INTO events_normalized (
                         event_id, event_type, occurred_at, user_id, amount_cents,
@@ -252,7 +258,7 @@ impl UpsertRepository for PgEventRepository {
                 .bind(entity.event_id)
                 .bind(entity.event_type.as_str())
                 .bind(entity.occurred_at)
-                .bind(entity.user_id)
+                .bind(entity.user_id.as_ref())
                 .bind(entity.amount_cents)
                 .bind(&entity.path)
                 .bind(&entity.referrer)
@@ -262,7 +268,7 @@ impl UpsertRepository for PgEventRepository {
                 .execute(&pool)
                 .await?;
 
-                Ok(result)
+                Ok(entity)
             })
         })
         .await
@@ -305,7 +311,7 @@ impl EventRepository for PgEventRepository {
                         LIMIT $2 OFFSET $3
                         "#,
                     )
-                    .bind(user_id)
+                    .bind(Some(user_id))
                     .bind(limit)
                     .bind(offset.unwrap_or(0));
                 }
@@ -448,6 +454,14 @@ impl EventRepository for PgEventRepository {
         })
         .await
     }
+
+    async fn upsert_event(&self, event: &NormalizedEvent) -> RepositoryResult<NormalizedEvent> {
+        self.upsert(event).await
+    }
+
+    async fn get_event(&self, event_id: &Uuid) -> RepositoryResult<Option<NormalizedEvent>> {
+        self.find_by_id(*event_id).await
+    }
 }
 
 #[cfg(test)]
@@ -461,5 +475,147 @@ mod tests {
         assert_eq!(config.max_retries, 5);
         assert_eq!(config.initial_backoff_ms, 200);
         assert_eq!(config.max_backoff_ms, 5000);
+    }
+}
+
+#[cfg(test)]
+/// Mock implementation of EventRepository for testing
+pub struct MockEventRepository {
+    events: std::sync::Arc<std::sync::Mutex<Vec<NormalizedEvent>>>,
+}
+
+#[cfg(test)]
+impl MockEventRepository {
+    pub fn new() -> Self {
+        Self {
+            events: std::sync::Arc::new(std::sync::Mutex::new(Vec::new())),
+        }
+    }
+}
+
+#[cfg(test)]
+#[async_trait]
+impl Repository for MockEventRepository {
+    type Entity = NormalizedEvent;
+    type Id = Uuid;
+
+    async fn find_by_id(&self, id: Uuid) -> RepositoryResult<Option<NormalizedEvent>> {
+        let events = self.events.lock().unwrap();
+        Ok(events.iter().find(|e| e.event_id == id).cloned())
+    }
+
+    async fn exists(&self, id: Uuid) -> RepositoryResult<bool> {
+        let events = self.events.lock().unwrap();
+        Ok(events.iter().any(|e| e.event_id == id))
+    }
+
+    async fn delete(&self, id: Uuid) -> RepositoryResult<bool> {
+        let mut events = self.events.lock().unwrap();
+        let initial_len = events.len();
+        events.retain(|e| e.event_id != id);
+        Ok(events.len() < initial_len)
+    }
+
+    async fn count(&self) -> RepositoryResult<i64> {
+        let events = self.events.lock().unwrap();
+        Ok(events.len() as i64)
+    }
+
+    async fn health_check(&self) -> RepositoryResult<()> {
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+#[async_trait]
+impl UpsertRepository for MockEventRepository {
+    async fn upsert(&self, entity: &NormalizedEvent) -> RepositoryResult<NormalizedEvent> {
+        let mut events = self.events.lock().unwrap();
+        if let Some(e) = events.iter_mut().find(|e| e.event_id == entity.event_id) {
+            *e = entity.clone();
+        } else {
+            events.push(entity.clone());
+        }
+        Ok(entity.clone())
+    }
+}
+
+#[cfg(test)]
+#[async_trait]
+impl EventRepository for MockEventRepository {
+    async fn find_by_user(
+        &self,
+        user_id: Uuid,
+        limit: Option<i64>,
+        offset: Option<i64>,
+    ) -> RepositoryResult<Vec<NormalizedEvent>> {
+        let events = self.events.lock().unwrap();
+        let filtered: Vec<_> = events
+            .iter()
+            .filter(|e| e.user_id == Some(user_id))
+            .skip(offset.unwrap_or(0) as usize)
+            .take(limit.unwrap_or(i64::MAX) as usize)
+            .cloned()
+            .collect();
+        Ok(filtered)
+    }
+
+    async fn find_by_time_range(
+        &self,
+        start: DateTime<Utc>,
+        end: DateTime<Utc>,
+        limit: Option<i64>,
+    ) -> RepositoryResult<Vec<NormalizedEvent>> {
+        let events = self.events.lock().unwrap();
+        let filtered: Vec<_> = events
+            .iter()
+            .filter(|e| e.occurred_at >= start && e.occurred_at <= end)
+            .take(limit.unwrap_or(i64::MAX) as usize)
+            .cloned()
+            .collect();
+        Ok(filtered)
+    }
+
+    async fn find_by_kafka_position(
+        &self,
+        partition: i32,
+        offset: i64,
+    ) -> RepositoryResult<Option<NormalizedEvent>> {
+        let events = self.events.lock().unwrap();
+        Ok(events
+            .iter()
+            .find(|e| e.kafka_partition == partition && e.kafka_offset == offset)
+            .cloned())
+    }
+
+    async fn get_latest_offset(&self, partition: i32) -> RepositoryResult<Option<i64>> {
+        let events = self.events.lock().unwrap();
+        Ok(events
+            .iter()
+            .filter(|e| e.kafka_partition == partition)
+            .map(|e| e.kafka_offset)
+            .max())
+    }
+
+    async fn count_by_type(&self, event_type: EventType) -> RepositoryResult<i64> {
+        let events = self.events.lock().unwrap();
+        Ok(events.iter().filter(|e| e.event_type == event_type).count() as i64)
+    }
+
+    async fn get_total_revenue(&self) -> RepositoryResult<i64> {
+        let events = self.events.lock().unwrap();
+        Ok(events
+            .iter()
+            .filter(|e| e.event_type == EventType::Purchase)
+            .filter_map(|e| e.amount_cents)
+            .sum())
+    }
+
+    async fn upsert_event(&self, event: &NormalizedEvent) -> RepositoryResult<NormalizedEvent> {
+        self.upsert(event).await
+    }
+
+    async fn get_event(&self, event_id: &Uuid) -> RepositoryResult<Option<NormalizedEvent>> {
+        self.find_by_id(*event_id).await
     }
 }

@@ -156,7 +156,7 @@ pub struct NormalizedEvent {
     pub occurred_at: DateTime<Utc>,
 
     /// User who triggered the event
-    pub user_id: Uuid,
+    pub user_id: Option<Uuid>,
 
     /// Optional amount in cents
     pub amount_cents: Option<i64>,
@@ -214,7 +214,11 @@ impl TryFrom<RawEvent> for NormalizedEvent {
         let event_id = validate_uuid_field(&raw.event_id, "event_id")?;
         let event_type = EventType::from_str(&raw.event_type)?;
         let occurred_at = validate_timestamp_field(&raw.occurred_at, "occurred_at")?;
-        let user_id = validate_uuid_field(&raw.user_id, "user_id")?;
+        let user_id = if raw.user_id.is_empty() {
+            None
+        } else {
+            Some(validate_uuid_field(&raw.user_id, "user_id")?)
+        };
         let amount_cents = validate_amount(raw.amount_cents, "amount_cents")?;
 
         // Normalize optional fields
