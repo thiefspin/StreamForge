@@ -106,13 +106,10 @@ impl EventConsumer {
         });
 
         // Wait for the consumer task to complete
-        match handle.await {
-            Ok(result) => result,
-            Err(e) => {
-                error!("Consumer task panicked: {}", e);
-                Err(crate::error::Error::internal("Consumer task panicked"))
-            },
-        }
+        handle.await.unwrap_or_else(|e| {
+            error!("Consumer task panicked: {}", e);
+            Err(crate::error::Error::internal("Consumer task panicked"))
+        })
     }
 
     /// Internal consumption loop
